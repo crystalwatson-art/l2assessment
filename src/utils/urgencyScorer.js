@@ -3,6 +3,19 @@
  */
 
 export function calculateUrgency(message) {
+  const criticalIncidentPatterns = [
+    /\b(?:server|service|site|system|production|database|api)\b.{0,40}\b(?:down|outage|offline|unavailable|inaccessible)\b/i,
+    /\b(?:down|outage|offline|unavailable|inaccessible)\b.{0,40}\b(?:server|service|site|system|production|database|api)\b/i,
+    /\b(?:database|server|service|api|system)\s+(?:connection|connectivity)\s+(?:lost|failed|failing)\b/i,
+    /\b(?:service|site|system|dashboard|app|application|server|database|api)\b.{0,40}\b(?:not responding|unreachable|won't load|will not load)\b/i
+  ]
+
+  // Clear outage and service-failure signals must not be downgraded because
+  // the customer described the incident in only a few words.
+  if (criticalIncidentPatterns.some(pattern => pattern.test(message))) {
+    return "High"
+  }
+
   let urgencyScore = 50
   
   const exclamationCount = (message.match(/!/g) || []).length
